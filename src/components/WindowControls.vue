@@ -3,7 +3,6 @@ import {ref} from 'vue';
 import {Window} from '@tauri-apps/api/window';
 
 const appWindow = new Window('main');
-
 const isMaximized = ref(false);
 
 function minimize() {
@@ -15,19 +14,26 @@ function close() {
 }
 
 function toggleMaximize() {
-  // window.electronAPI.toggleMaximize(); // 你需定义这个 API
+  // 示例逻辑（需你补充真实实现）
+  isMaximized.value = !isMaximized.value
+  // 可使用 Tauri 事件机制通知主进程最大化窗口
 }
 </script>
 
 <template>
-  <div class="window-controls d-flex" style="gap: 2px; app-region: no-drag">
-    <button class="window-btn" @click="minimize" title="最小化">
+  <div class="flex gap-[2px] select-none" style="app-region: no-drag">
+    <!-- 最小化按钮 -->
+    <button @click="minimize" title="最小化" class="window-btn">
       <i class="bi bi-dash"></i>
     </button>
-    <button class="window-btn" @click="toggleMaximize" title="还原窗口">
+
+    <!-- 最大化按钮 -->
+    <button @click="toggleMaximize" title="还原窗口" class="window-btn">
       <i :class="isMaximized ? 'bi bi-square' : 'bi bi-fullscreen-exit'"></i>
     </button>
-    <button class="window-btn close-btn" @click="close" title="关闭">
+
+    <!-- 关闭按钮 -->
+    <button @click="close" title="关闭" class="window-btn close-btn">
       <i class="bi bi-x-lg"></i>
     </button>
   </div>
@@ -41,7 +47,7 @@ function toggleMaximize() {
 }
 
 /* 深色模式下覆盖 */
-body[data-bs-theme="dark"] {
+html[data-theme="dark"] {
   --window-icon-color: #fff !important;
   --window-btn-hover-bg: rgba(255, 255, 255, 0.1);
 }

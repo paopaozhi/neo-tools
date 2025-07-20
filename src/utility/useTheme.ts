@@ -30,9 +30,9 @@ export function useTheme() {
     // 应用主题到 body
     const applyTheme = (theme: string) => {
         if (theme === 'dark') {
-            document.body.setAttribute("data-bs-theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
         } else {
-            document.body.removeAttribute("data-bs-theme");
+            document.documentElement.removeAttribute("data-theme");
         }
     };
 

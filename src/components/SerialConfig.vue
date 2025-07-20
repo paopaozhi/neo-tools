@@ -1,6 +1,6 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { invoke } from '@tauri-apps/api/core';
+import {computed, onMounted, onUnmounted, ref, watch} from "vue";
+import {invoke} from '@tauri-apps/api/core';
 
 const SerialStatus_t = Object.freeze({
   OPEN: "关闭串口",
@@ -22,10 +22,10 @@ const serialBaudRateData = ref(serialBaudRate.value[0]);
 
 const isSerialDisabled = computed(() => serialStatus.value === SerialStatus_t.OPEN);
 
-const displayStatus = ref("display-text");
+const displayStatus = ref(true);
 
 watch(displayStatus, (newValue) => {
-  if (newValue === "display-text") {
+  if (newValue) {
     emit("updateDisplayStatus", true);
   } else {
     emit("updateDisplayStatus", false);
@@ -43,7 +43,12 @@ async function switchSerialStatus() {
 
   if (serialStatus.value === SerialStatus_t.CLOSE) {
     // 开启串口
-    await invoke('open_port', { config: { port: serialPathData.value, baud_rate: parseInt(serialBaudRateData.value) } }).then(() => {
+    await invoke('open_port', {
+      config: {
+        port: serialPathData.value,
+        baud_rate: parseInt(serialBaudRateData.value)
+      }
+    }).then(() => {
       // 成功开启串口
       serialStatus.value = SerialStatus_t.OPEN;
       // 开始监听串口数据
@@ -89,64 +94,29 @@ onUnmounted(async () => {
 <template>
   <div class="flex-grow-1 card">
     <div class="card-body">
-      <div class="mb-3">
-        <label class="form-label">串口列表</label>
-        <select class="form-select form-select-sm" v-model="serialPathData" :disabled="isSerialDisabled">
+      <fieldset class="fieldset">
+        <label class="fieldset-legend">串口列表</label>
+        <select class="select select-sm" v-model="serialPathData" :disabled="isSerialDisabled">
           <option v-for="serial in serialList" :value="serial">{{ serial }}</option>
         </select>
-      </div>
+      </fieldset>
 
-      <div class="mb-3">
-        <label class="form-label">波特率</label>
-        <select class="form-select form-select-sm" id="serial-baud-rate" v-model="serialBaudRateData">
+      <fieldset class="fieldset">
+        <label class="fieldset-legend">波特率</label>
+        <select class="select select-sm" id="serial-baud-rate" v-model="serialBaudRateData">
           <option v-for="serial in serialBaudRate" :value="serial">{{ serial }}</option>
         </select>
-      </div>
+      </fieldset>
 
-      <div class="me-3">
-        <label class="form-label">切换显示模式</label>
-        <div class="form-selectgroup">
-          <label class="form-selectgroup-item">
-            <input type="radio" name="icons" value="display-text" class="form-selectgroup-input"
-              v-model="displayStatus" />
-            <span class="form-selectgroup-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="icon me-1 icon-3">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
-                <path d="M4 16v2a2 2 0 0 0 2 2h2" />
-                <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-                <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
-                <path d="M8 12h8" />
-                <path d="M8 9h6" />
-                <path d="M8 15h4" />
-              </svg>
-              文本</span>
-          </label>
-          <label class="form-selectgroup-item">
-            <input type="radio" name="icons" value="display-draw" class="form-selectgroup-input"
-              v-model="displayStatus" />
-            <span class="form-selectgroup-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="icon me-1 icon-3">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M18 11h.009" />
-                <path d="M14 15h.009" />
-                <path d="M12 6h.009" />
-                <path d="M8 10h.009" />
-                <path d="M3 21l17 -17" />
-                <path d="M3 3v18h18" />
-              </svg>
-              图像</span>
-          </label>
+      <fieldset class="fieldset">
+        <label class="fieldset-legend">切换显示模式</label>
+        <div class=" flex">
+          <input type="checkbox" checked="checked" class="toggle mr-2" v-model="displayStatus"/>
+          <span class="text-base">{{ displayStatus ? "文本" : "图像" }}</span>
         </div>
-      </div>
-    </div>
+      </fieldset>
 
-    <div class="card-footer">
-      <button type="submit" class="btn ms-auto" @click="switchSerialStatus">{{ serialStatus }}</button>
+      <button type="submit" class="btn" @click="switchSerialStatus">{{ serialStatus }}</button>
     </div>
   </div>
 </template>

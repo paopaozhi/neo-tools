@@ -3,7 +3,7 @@ import {computed} from "vue";
 import {useTheme} from "@/utility/useTheme";
 
 
-const {selectedTheme, toggleTheme} = useTheme();
+// const {selectedTheme, toggleTheme} = useTheme();
 
 const light = `<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
                 stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -20,7 +20,7 @@ const dark = `<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" he
               </svg>`;
 
 const icon = computed(() => {
-  return selectedTheme.value == "light" ? light : dark;
+  return light
 });
 </script>
 

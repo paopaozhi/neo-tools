@@ -61,7 +61,7 @@ async function writeData() {
     invoke('write_serial', {data: Array.from(data)}).then(() => {
       listData.value.push({time: new Date().toLocaleString(), content: serialSendData.value, isSend: true});
     });
-  }else{
+  } else {
     // todo: 当未打开串口时，会提示需要打开串口后使用
   }
 }
@@ -161,79 +161,64 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="page" style="height: 100%;">
-    <header class="navbar navbar-expand-md d-print-none no-top-border">
-      <div class="container-xl" style="app-region: drag;">
-        <!-- BEGIN NAVBAR LOGO -->
-        <span class="fs-1 text-" style="font-family: AlimamaDaoLiTi;">NeoTool</span>
-        <!-- END NAVBAR LOGO -->
-        <div class="navbar-nav flex-row order-md-last" style="app-region: no-drag;">
-          <div class="d-none d-md-flex">
-            <SwitchTheme/>
-          </div>
-          <div class="nav-item dropdown">
-            <a href="#" class="nav-link d-flex lh-1 p-0 px-2" data-bs-toggle="dropdown" aria-label="Open user menu">
-              <span class="avatar avatar-sm" style=""> </span>
-              <div class="d-xl-block ps-2">
-                <div>用户登录</div>
-                <div class="mt-1 small text-secondary">UI Designer</div>
-              </div>
-            </a>
-            <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-              <a href="#" class="dropdown-item">Status</a>
-              <a href="#" class="dropdown-item">Profile</a>
-              <a href="#" class="dropdown-item">Feedback</a>
-              <div class="dropdown-divider"></div>
-              <a href="#" class="dropdown-item">Settings</a>
-              <a href="#" class="dropdown-item">Logout</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="navbar-nav align-items-center justify-content-center" style="app-region: no-drag">
+  <div class="flex flex-col h-screen">
+    <!-- 顶部栏 -->
+    <header class="flex items-center justify-between px-4 py-2 border-b border-gray-300 dark:border-gray-700"
+            style="app-region: drag;">
+      <div class="text-xl font-bold" style="font-family: AlimamaDaoLiTi;">NeoTool</div>
+      <div class="flex items-center gap-2">
+        <SwitchTheme/>
         <WindowControls/>
       </div>
     </header>
 
-    <div class="page-wrapper">
-      <div class="page-body mt-0 mb-0">
-        <div class="flex-fill d-flex">
-          <div class="col-sm-3 col-xl-2">
-            <div class="d-flex flex-column h-100">
-              <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
-              <div class="card">
-                <button class="btn btn-primary btn-sm" @click="() => { listData.length = 0; }">清空数据</button>
+    <!-- 页面内容 -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- 左侧串口配置栏 -->
+      <div class="w-full max-w-xs flex flex-col gap-2 p-2 border-r border-gray-300 dark:border-gray-700">
+        <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
+        <div class=" rounded shadow p-2">
+          <button class="btn"
+                  @click="() => { listData.length = 0; }">
+            清空数据
+          </button>
+        </div>
+      </div>
+
+      <!-- 右侧主区域 -->
+      <div class="flex-1 flex flex-col p-2 overflow-hidden">
+        <div class="flex-1  rounded shadow overflow-hidden flex flex-col">
+          <!-- 接收数据区域 -->
+          <div v-if="displayStatus"
+               class="flex-1 overflow-y-auto p-3"
+               style="height: 300px"
+               ref="scrollContainer"
+               @scroll="handleScroll">
+            <div v-for="item in listData" class="mb-2 text-sm">
+              <div class="text-gray-500 dark:text-gray-400">{{ item.time }}</div>
+              <div :class="item.isSend ? 'text-blue-500' : 'text-green-500'">
+                {{ item.content }}
               </div>
             </div>
           </div>
 
-          <div class="col-sm-9 col-xl-10">
-            <div class="card h-100">
-              <div v-if="displayStatus" class="card-body overflow-y-auto" style="height: 300px" ref="scrollContainer"
-                   @scroll="handleScroll">
-                <div v-for="item in listData" class="mt-1">
-                  <span class="d-block fs-5">{{ item.time }}</span>
-                  <span :class="item.isSend ? 'text-blue' : 'text-green'">{{ item.content }}</span>
-                </div>
-              </div>
-
-              <div v-else class="card-body d-flex flex-column">
-                <div class="flex-fill">
-                  <apexchart :series="series" :options="chartOptions" height="100%"></apexchart>
-                </div>
-              </div>
-            </div>
+          <!-- 图表区域 -->
+          <div v-else class="flex-1">
+            <apexchart :series="series" :options="chartOptions" height="100%"/>
           </div>
         </div>
 
-        <div class="card d-flex">
-          <div class="card-body">
-            <label class="form-label">发送</label>
-            <div class="input-group">
-              <textarea type="text" class="form-control" placeholder="发送至设备...." v-model="serialSendData"/>
-              <button class="btn" type="button" @click="writeData">发送</button>
-            </div>
+        <!-- 发送区域 -->
+        <div class="rounded shadow mt-2 p-4">
+          <label class="block text-sm font-medium mb-1">发送</label>
+          <div class="flex items-start gap-2">
+            <textarea
+                class="textarea flex-1 p-2 rounded border text-sm resize-none"
+                rows="2"
+                placeholder="发送至设备...."
+                v-model="serialSendData"
+            ></textarea>
+            <button class="btn" @click="writeData">发送</button>
           </div>
         </div>
       </div>
