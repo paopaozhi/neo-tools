@@ -5,6 +5,7 @@ import SwitchTheme from "@/components/SwitchTheme.vue";
 import WindowControls from '@/components/WindowControls.vue';
 import {invoke} from "@tauri-apps/api/core";
 import {listen} from "@tauri-apps/api/event";
+import SerialDataDisplay from "@/components/custom/SerialDataDisplay.vue";
 
 const listData = ref([]);
 const serialSendData = ref("");
@@ -66,24 +67,6 @@ async function writeData() {
   }
 }
 
-const scrollContainer = ref(null);
-const isAtBottom = ref(true);
-
-function scrollToBottom() {
-  if (scrollContainer.value) {
-    scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight;
-  }
-}
-
-function handleScroll() {
-  const el = scrollContainer.value;
-  if (!el) return;
-
-  const threshold = 20; // 容许误差
-  const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-  isAtBottom.value = distanceToBottom < threshold;
-}
-
 function extractNumbers(str) {
   // 匹配形如 $123<<、$45.67<< 的内容
   const regex = /\$(\d+(\.\d+)?)(?=<<)/g;
@@ -121,21 +104,6 @@ watch(listData, () => {
   trimListDataTo1MB();
 }, {deep: true});
 
-watch(() => listData.value.length, async () => {
-  await nextTick();
-  if (isAtBottom.value) {
-    scrollToBottom();
-  }
-});
-
-watch(displayStatus, async (newValue) => {
-  if (newValue === true) {
-    await nextTick(); // 等待 DOM 更新完成
-
-    scrollToBottom();
-  }
-});
-
 /// 监听串口数据
 listen("serial-data", (event) => {
   listData.value.push({
@@ -144,20 +112,6 @@ listen("serial-data", (event) => {
     isSend: false,
   });
   extractNumbers(event.payload);
-});
-
-onMounted(() => {
-  scrollToBottom(); // 初始自动到底
-
-  // window.electronAPI.onSerialData((data) => {
-  //   listData.value.push({
-  //     time: new Date().toLocaleString(),
-  //     content: data,
-  //     isSend: false,
-  //   });
-  //
-  //   extractNumbers(data);
-  // });
 });
 </script>
 <template>
@@ -187,26 +141,8 @@ onMounted(() => {
 
       <!-- 右侧主区域 -->
       <div class="flex-1 flex flex-col p-2 overflow-hidden">
-        <div class="flex-1  rounded shadow overflow-hidden flex flex-col">
-          <!-- 接收数据区域 -->
-          <div v-if="displayStatus"
-               class="flex-1 overflow-y-auto p-3"
-               style="height: 300px"
-               ref="scrollContainer"
-               @scroll="handleScroll">
-            <div v-for="item in listData" class="mb-2 text-sm">
-              <div class="text-gray-500 dark:text-gray-400">{{ item.time }}</div>
-              <div :class="item.isSend ? 'text-blue-500' : 'text-green-500'">
-                {{ item.content }}
-              </div>
-            </div>
-          </div>
-
-          <!-- 图表区域 -->
-          <div v-else class="flex-1">
-            <apexchart :series="series" :options="chartOptions" height="100%"/>
-          </div>
-        </div>
+        <!-- 数据区域 -->
+        <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
 
         <!-- 发送区域 -->
         <div class="rounded shadow mt-2 p-4">
