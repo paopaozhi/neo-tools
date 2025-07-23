@@ -4,7 +4,7 @@ import {ref, watchEffect} from 'vue';
 import {storeToRefs} from "pinia";
 import {useMainStore} from "../store";
 
-export function useTheme() {
+export default function useTheme() {
     const themeStorageKey = "tablerTheme";
     const mainStore = useMainStore()
     const {theme} = storeToRefs(mainStore);
@@ -32,7 +32,7 @@ export function useTheme() {
         if (theme === 'dark') {
             document.documentElement.setAttribute("data-theme", theme);
         } else {
-            document.documentElement.removeAttribute("data-theme");
+            document.documentElement.setAttribute("data-theme", theme);
         }
     };
 

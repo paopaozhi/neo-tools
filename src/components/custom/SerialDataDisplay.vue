@@ -86,8 +86,8 @@ watch(() => props.listData.length, async () => {
          ref="scrollContainer"
          @scroll="handleScroll">
       <div v-for="item in listData" class="mb-2 text-sm">
-        <div class="text-gray-500 dark:text-gray-400">{{ item.time }}</div>
-        <div :class="item.isSend ? 'text-blue-500' : 'text-green-500'">
+        <div class="text-sm">{{ item.time }}</div>
+        <div :class="item.isSend ? 'text-secondary' : 'text-primary'" class="text-base">
           {{ item.content }}
         </div>
       </div>
