@@ -92,7 +92,7 @@ onUnmounted(async () => {
 </script>
 
 <template>
-  <div class="flex-grow-1 card">
+  <div class="card rounded">
     <div class="card-body">
       <fieldset class="fieldset">
         <label class="fieldset-legend">串口列表</label>

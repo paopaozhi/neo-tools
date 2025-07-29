@@ -117,7 +117,7 @@ listen("serial-data", (event) => {
 <template>
   <div class="flex flex-col h-screen">
     <!-- 顶部栏 -->
-    <header class="flex items-center justify-between px-4 py-2 border-b border-gray-300 dark:border-gray-700"
+    <header class="flex items-center justify-between px-4 py-2"
             style="app-region: drag;">
       <div class="text-xl font-bold" style="font-family: AlimamaDaoLiTi;">NeoTool</div>
       <div class="flex items-center gap-2">
@@ -129,13 +129,17 @@ listen("serial-data", (event) => {
     <!-- 页面内容 -->
     <div class="flex flex-1 overflow-hidden">
       <!-- 左侧串口配置栏 -->
-      <div class="w-full max-w-xs flex flex-col gap-2 p-2 border-r border-gray-300 dark:border-gray-700">
-        <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
-        <div class=" rounded shadow p-2">
-          <button class="btn"
-                  @click="() => { listData.length = 0; }">
-            清空数据
-          </button>
+      <div class="w-full max-w-xs flex flex-col gap-2 p-2">
+        <div class="border border-base-300 h-full">
+          <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
+          <div class="card">
+            <div class="card-body">
+              <button class="btn"
+                      @click="() => { listData.length = 0; }">
+                清空数据
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -145,16 +149,16 @@ listen("serial-data", (event) => {
         <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
 
         <!-- 发送区域 -->
-        <div class="rounded shadow mt-2 p-4">
+        <div class="rounded mt-2 p-4 border border-base-300">
           <label class="block text-sm font-medium mb-1">发送</label>
-          <div class="flex items-start gap-2">
+          <div class="flex gap-2">
             <textarea
-                class="textarea flex-1 p-2 rounded border text-sm resize-none"
+                class="textarea flex-1/2 p-2 rounded border text-sm resize-none"
                 rows="2"
                 placeholder="发送至设备...."
                 v-model="serialSendData"
             ></textarea>
-            <button class="btn" @click="writeData">发送</button>
+            <button class="btn h-auto" @click="writeData">发送</button>
           </div>
         </div>
       </div>
