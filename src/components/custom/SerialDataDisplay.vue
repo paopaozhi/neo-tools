@@ -78,7 +78,7 @@ watch(() => props.listData.length, async () => {
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col overflow-hidden rounded border border-base-300">
+  <div class="flex-1 flex flex-col overflow-hidden rounded border border-base-300 h-full">
     <!-- 接收数据区域 -->
     <div v-if="displayStatus"
          class="flex-1 overflow-y-auto p-3"
