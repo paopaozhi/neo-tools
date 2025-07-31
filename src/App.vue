@@ -127,24 +127,26 @@ listen("serial-data", (event) => {
     </header>
 
     <!-- 页面内容 -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="grid grid-cols-12 overflow-hidden h-full">
       <!-- 左侧串口配置栏 -->
-      <div class="w-full max-w-xs flex flex-col gap-2 p-2">
-        <div class="border border-base-300 h-full">
-          <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
-          <div class="card">
-            <div class="card-body">
-              <button class="btn"
-                      @click="() => { listData.length = 0; }">
-                清空数据
-              </button>
+      <div class="col-span-3 xl:col-span-2">
+        <div class="h-full w-full flex flex-col gap-2 p-2">
+          <div class="border border-base-300 h-full">
+            <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
+            <div class="card">
+              <div class="card-body">
+                <button class="btn"
+                        @click="() => { listData.length = 0; }">
+                  清空数据
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 右侧主区域 -->
-      <div class="flex-1 flex flex-col p-2 overflow-hidden">
+      <div class="col-span-9 xl:col-span-10 flex-1 flex flex-col p-2 overflow-hidden">
         <!-- 数据区域 -->
         <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
 
