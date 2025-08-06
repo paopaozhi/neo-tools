@@ -94,8 +94,8 @@ watch(() => props.listData.length, async () => {
     </div>
 
     <!-- 图表区域 -->
-    <div v-else class="flex-1">
-      <apexchart class="m-1" :series="series" :options="chartOptions" height="100%"/>
+    <div v-else class="flex-1 p-2">
+      <apexchart :series="series" :options="chartOptions" height="100%"/>
     </div>
   </div>
 </template>

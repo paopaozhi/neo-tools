@@ -49,7 +49,7 @@ function toggleMaximize() {
 /* 深色模式下覆盖 */
 html[data-theme="dark"] {
   --window-icon-color: #fff !important;
-  --window-btn-hover-bg: rgba(255, 255, 255, 0.1);
+  --window-btn-hover-bg: rgb(64, 64, 64);
 }
 
 .window-btn {

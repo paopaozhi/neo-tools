@@ -93,7 +93,7 @@ onUnmounted(async () => {
 
 <template>
   <div class="card rounded">
-    <div class="card-body">
+    <div class="card-body pt-0 pb-1">
       <fieldset class="fieldset">
         <label class="fieldset-legend">串口列表</label>
         <select class="select select-sm" v-model="serialPathData" :disabled="isSerialDisabled">
@@ -110,13 +110,13 @@ onUnmounted(async () => {
 
       <fieldset class="fieldset">
         <label class="fieldset-legend">切换显示模式</label>
-        <div class=" flex">
-          <input type="checkbox" checked="checked" class="toggle mr-2" v-model="displayStatus"/>
+        <div class="flex">
+          <input type="checkbox" checked="checked" class="toggle toggle-sm mr-2" v-model="displayStatus"/>
           <span class="text-base">{{ displayStatus ? "文本" : "图像" }}</span>
         </div>
       </fieldset>
 
-      <button type="submit" class="btn" @click="switchSerialStatus">{{ serialStatus }}</button>
+      <button type="submit" class="btn btn-sm" @click="switchSerialStatus">{{ serialStatus }}</button>
     </div>
   </div>
 </template>

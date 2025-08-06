@@ -20,30 +20,8 @@ const displayStatus = ref(true);
 
 const serial_1 = []
 
-const chartOptions = ref({
-  chart: {
-    id: 'vuechart-example',
-    toolbar: {
-      show: false,
-    },
-  },
-  stroke: {
-    width: 2, // 设置为 1px，变细
-    curve: 'smooth'
-  },
-  tooltip: {enable: false},
-  xaxis: {
-    labels: {
-      show: false
-    },
-    axisBorder: {
-      show: false
-    },
-    axisTicks: {
-      show: false
-    }
-  },
-});
+const isSerialSendQuickly = ref(false);
+
 const series = ref([{
   name: 'series-1',
   data: []
@@ -118,7 +96,7 @@ listen("serial-data", (event) => {
 <template>
   <div class="flex flex-col h-screen">
     <!-- 顶部栏 -->
-    <header class="flex items-center justify-between px-4 py-2"
+    <header class="flex items-center justify-between px-4 pt-1"
             style="app-region: drag;">
       <div class="text-xl font-bold" style="font-family: AlimamaDaoLiTi;">NeoTool</div>
       <div class="flex items-center gap-2">
@@ -136,10 +114,11 @@ listen("serial-data", (event) => {
             <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
             <div class="card">
               <div class="card-body">
-                <button class="btn"
+                <button class="btn btn-sm"
                         @click="() => { listData.length = 0; }">
                   清空数据
                 </button>
+                <button class="btn btn-sm" @click="() => {isSerialSendQuickly = !isSerialSendQuickly}">快捷发送</button>
               </div>
             </div>
           </div>
@@ -150,8 +129,12 @@ listen("serial-data", (event) => {
       <div class="col-span-9 xl:col-span-10 p-2">
         <div class="grid grid-rows-[3fr_1fr] h-full">
           <div class="row-span-3">
-            <!-- 数据区域 -->
-            <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
+            <div class="flex flex-1 h-full overflow-hidden">
+              <!-- 数据区域 -->
+              <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
+              <!-- AT指令配置 -->
+              <SerialSendQuickly v-if="isSerialSendQuickly"/>
+            </div>
           </div>
 
           <!-- 发送区域 -->

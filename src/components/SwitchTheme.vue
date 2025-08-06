@@ -10,7 +10,7 @@ const theme = computed(() => {
 </script>
 
 <template>
-  <label class="swap">
+  <label class="swap btn btn-square btn-ghost btn-sm">
     <input type="checkbox" v-model="theme" @click="toggleTheme"/>
     <i class="bi-moon swap-on fill-current icon-style"></i>
     <i class="bi-sun swap-off fill-current icon-style"></i>
