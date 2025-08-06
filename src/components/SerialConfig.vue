@@ -13,12 +13,18 @@ const model = defineModel();
 
 const serialList = ref(["COM1", "COM2"]);
 const serialBaudRate = ref(["9600", "115200"]);
+const serialDataBit = ref(["8", "7"])
+const serialStopBit = ref(["1", "1.5", "2"])
+const serialVerifyBit = ref(["NOTE", "ODD", "EVEN", "MARK", "SPACE"])
 
 const serialStatus = ref(SerialStatus_t.CLOSE)
 const portList = ref([]);
 
 const serialPathData = ref("");
 const serialBaudRateData = ref(serialBaudRate.value[0]);
+const serialDataBitData = ref(serialDataBit.value[0])
+const serialStopBitData = ref(serialStopBit.value[0])
+const serialVerifyBitData = ref(serialVerifyBit.value[0])
 
 const isSerialDisabled = computed(() => serialStatus.value === SerialStatus_t.OPEN);
 
@@ -93,27 +99,40 @@ onUnmounted(async () => {
 
 <template>
   <div class="card rounded">
-    <div class="card-body pt-0 pb-1">
+    <div class="card-body pt-0 pb-1 gap-0">
       <fieldset class="fieldset">
         <label class="fieldset-legend">串口列表</label>
-        <select class="select select-sm" v-model="serialPathData" :disabled="isSerialDisabled">
+        <select class="select select-xs" v-model="serialPathData" :disabled="isSerialDisabled">
           <option v-for="serial in serialList" :value="serial">{{ serial }}</option>
         </select>
       </fieldset>
 
       <fieldset class="fieldset">
         <label class="fieldset-legend">波特率</label>
-        <select class="select select-sm" id="serial-baud-rate" v-model="serialBaudRateData">
+        <select class="select select-xs" id="serial-baud-rate" v-model="serialBaudRateData">
           <option v-for="serial in serialBaudRate" :value="serial">{{ serial }}</option>
         </select>
       </fieldset>
 
       <fieldset class="fieldset">
-        <label class="fieldset-legend">切换显示模式</label>
-        <div class="flex">
-          <input type="checkbox" checked="checked" class="toggle toggle-sm mr-2" v-model="displayStatus"/>
-          <span class="text-base">{{ displayStatus ? "文本" : "图像" }}</span>
-        </div>
+        <label class="fieldset-legend">数据位</label>
+        <select class="select select-xs" id="serial-baud-rate" v-model="serialDataBitData">
+          <option v-for="serial in serialDataBit" :value="serial">{{ serial }}</option>
+        </select>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="fieldset-legend">停止位</label>
+        <select class="select select-xs" id="serial-baud-rate" v-model="serialStopBitData">
+          <option v-for="serial in serialStopBit" :value="serial">{{ serial }}</option>
+        </select>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="fieldset-legend">校验位</label>
+        <select class="select select-xs" id="serial-baud-rate" v-model="serialVerifyBitData">
+          <option v-for="serial in serialVerifyBit" :value="serial">{{ serial }}</option>
+        </select>
       </fieldset>
 
       <button type="submit" class="btn btn-sm" @click="switchSerialStatus">{{ serialStatus }}</button>
