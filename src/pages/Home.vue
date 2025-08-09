@@ -1,0 +1,95 @@
+<script setup lang="ts">
+// @ts-ignore
+import SerialConfig from "@/components/SerialConfig.vue";
+import SerialDataDisplay from "@/components/custom/SerialDataDisplay.vue";
+import SerialSendQuickly from "@/components/custom/SerialSendQuickly.vue";
+import {invoke} from "@tauri-apps/api/core";
+import {ref} from "vue";
+
+interface serialData {
+  time: string,
+  content: string,
+  isSend: boolean
+}
+
+const listData = ref<(serialData)[]>([]);
+const serialSendData = ref("");
+
+const serialStatus = ref({path: "", isOpen: false,});
+const series = ref([{
+  name: 'series-1',
+  data: []
+}]);
+
+const displayStatus = ref(true);
+
+const isSerialSendQuickly = ref(false);
+
+async function writeData() {
+  if (serialStatus.value.isOpen === true) {
+    const data = new TextEncoder().encode(serialSendData.value);
+    invoke('write_serial', {data: Array.from(data)}).then(() => {
+      listData.value.push({time: new Date().toLocaleString(), content: serialSendData.value, isSend: true});
+    });
+  } else {
+    // todo: 当未打开串口时，会提示需要打开串口后使用
+  }
+}
+</script>
+
+<template>
+  <div class="grid grid-cols-12 m-1 w-full">
+    <!-- 左侧串口配置栏 -->
+    <div class="col-span-3 xl:col-span-2">
+      <div class="h-full w-full flex flex-col gap-2 p-2">
+        <div class="border border-base-300 h-full rounded">
+          <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg:boolean) => { displayStatus = msg }"/>
+          <div class="card">
+            <div class="card-body">
+              <button class="btn btn-sm"
+                      @click="() => { listData.length = 0; }">
+                清空数据
+              </button>
+              <button class="btn btn-sm" @click="() => {isSerialSendQuickly = !isSerialSendQuickly}">
+                快捷发送
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧主区域 -->
+    <div class="col-span-9 xl:col-span-10 p-2">
+      <div class="grid grid-rows-[3fr_1fr] h-full">
+        <div class="row-span-3">
+          <div class="flex flex-1 h-full overflow-hidden">
+            <!-- 数据区域 -->
+            <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
+            <!-- AT指令配置 -->
+            <SerialSendQuickly v-if="isSerialSendQuickly"/>
+          </div>
+        </div>
+
+        <!-- 发送区域 -->
+        <div class="row-span-1">
+          <div class="rounded mt-2 p-4 border border-base-300">
+            <div class="flex gap-2">
+            <textarea
+                class="textarea flex-1/2 p-2 rounded border text-sm resize-none"
+                rows="2"
+                placeholder="发送至设备...."
+                v-model="serialSendData"
+            ></textarea>
+              <button class="btn h-auto" @click="writeData">发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+
+</style>

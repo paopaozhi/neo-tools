@@ -8,13 +8,20 @@ import {listen} from "@tauri-apps/api/event";
 import SerialDataDisplay from "@/components/custom/SerialDataDisplay.vue";
 import SerialSendQuickly from "@/components/custom/SerialSendQuickly.vue";
 
+import {Settings, ChartLine} from "lucide-vue-next"
+import {Button} from "@/components/ui/button/index.js";
+import DataChart from "@/pages/DataChart.vue";
+
+const activePage = ref('setting'); // 默认显示设置页
+const settingVariant = computed(() => activePage.value === 'setting' ? 'secondary' : 'ghost')
+const chartLineVariant = computed(() => activePage.value === 'chart-line' ? 'secondary' : 'ghost')
+
 const listData = ref([]);
 const serialSendData = ref("");
 
 const serialStatus = ref({path: "", isOpen: false,});
 
 const VISIBLE_POINTS = 30;
-const chartStart = ref(0);
 
 const displayStatus = ref(true);
 
@@ -27,12 +34,8 @@ const series = ref([{
   data: []
 }]);
 
-function miniWindow() {
-  window.electronAPI.minimize();
-}
-
-function closeWindow() {
-  window.electronAPI.close();
+function switchPage(page) {
+  activePage.value = page;
 }
 
 async function writeData() {
@@ -106,18 +109,20 @@ listen("serial-data", (event) => {
     </header>
 
     <!-- 页面内容 -->
-    <div class="flex flex-1 flex-row z-20">
-      <div class="flex flex-col w-14 items-center gap-2 py-2 border-r-2 border-base-300">
-        <button class="btn btn-sm btn-square size-9 bg-transparent">
-          <span class="bi bi-gear"></span>
-        </button>
+    <div class="flex flex-1 z-20">
+      <div class="flex-1">
+        <div class="flex flex-col w-14 items-center gap-2 py-2 border-r-2 border-base-300 h-full">
+          <Button :variant="settingVariant" @click="switchPage('setting')">
+            <component :is="Settings"/>
+          </Button>
 
-        <button class="btn btn-sm btn-square size-9">
-          <span class="bi bi-graph-up"></span>
-        </button>
+          <Button :variant="chartLineVariant" @click="switchPage('chart-line')">
+            <component :is="ChartLine"/>
+          </Button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-12 m-1 w-full">
+      <div v-if="activePage === 'setting'" class="grid grid-cols-12 p-0 w-full">
         <!-- 左侧串口配置栏 -->
         <div class="col-span-3 xl:col-span-2">
           <div class="h-full w-full flex flex-col gap-2 p-2">
@@ -167,10 +172,11 @@ listen("serial-data", (event) => {
           </div>
         </div>
       </div>
+
+      <div class="w-full" v-if="activePage === 'chart-line'">
+        <DataChart />
+      </div>
     </div>
-
-    <!-- 页面内容 -->
-
   </div>
 </template>
 
