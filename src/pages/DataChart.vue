@@ -34,7 +34,7 @@ const chartOptions = ref({
 </script>
 
 <template>
-    <div class="flex flex-col p-2 h-full gap-2">
+    <div class="flex flex-col p-2 h-full gap-2 w-full">
       <div class="flex-1 p-2 border rounded">
         <apexchart :series="series" :options="chartOptions" height="100%"/>
       </div>

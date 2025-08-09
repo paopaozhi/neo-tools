@@ -9,7 +9,6 @@ interface ListItem {
 }
 
 const props = defineProps({
-  displayStatus: Boolean,
   listData: {type: Array as () => ListItem[], default: () => []},
 
   series: Array
@@ -18,32 +17,6 @@ const props = defineProps({
 // 滚动条
 const scrollContainer = ref<HTMLElement | null>(null);
 const isAtBottom = ref(true);
-
-// 图表配置
-const chartOptions = ref({
-  chart: {
-    id: 'vuechart-example',
-    toolbar: {
-      show: false,
-    },
-  },
-  stroke: {
-    width: 2, // 设置为 1px，变细
-    curve: 'smooth'
-  },
-  tooltip: {enable: false},
-  xaxis: {
-    labels: {
-      show: false
-    },
-    axisBorder: {
-      show: false
-    },
-    axisTicks: {
-      show: false
-    }
-  },
-});
 
 function scrollToBottom() {
   if (scrollContainer.value) {
@@ -60,14 +33,6 @@ function handleScroll() {
   isAtBottom.value = distanceToBottom < threshold;
 }
 
-watch(() => props.displayStatus, async (newValue) => {
-  await nextTick();
-
-  if (newValue) {
-    scrollToBottom();
-  }
-})
-
 watch(() => props.listData.length, async () => {
   await nextTick();
   if (isAtBottom.value) {
@@ -80,8 +45,7 @@ watch(() => props.listData.length, async () => {
 <template>
   <div class="flex-1 flex flex-col overflow-hidden rounded border border-base-300 h-full">
     <!-- 接收数据区域 -->
-    <div v-if="displayStatus"
-         class="flex-1 overflow-y-auto p-3"
+    <div class="flex-1 overflow-y-auto p-3"
          style="height: 300px"
          ref="scrollContainer"
          @scroll="handleScroll">
@@ -91,11 +55,6 @@ watch(() => props.listData.length, async () => {
           {{ item.content }}
         </div>
       </div>
-    </div>
-
-    <!-- 图表区域 -->
-    <div v-else class="flex-1 p-2">
-      <apexchart :series="series" :options="chartOptions" height="100%"/>
     </div>
   </div>
 </template>

@@ -4,7 +4,8 @@ import SerialConfig from "@/components/SerialConfig.vue";
 import SerialDataDisplay from "@/components/custom/SerialDataDisplay.vue";
 import SerialSendQuickly from "@/components/custom/SerialSendQuickly.vue";
 import {invoke} from "@tauri-apps/api/core";
-import {ref} from "vue";
+import {ref, watch} from "vue";
+import {listen} from "@tauri-apps/api/event";
 
 interface serialData {
   time: string,
@@ -21,9 +22,10 @@ const series = ref([{
   data: []
 }]);
 
-const displayStatus = ref(true);
+const serial_1: { x: number, y: number }[] = []
+const VISIBLE_POINTS = 30;
 
-const isSerialSendQuickly = ref(false);
+const isSerialSendQuickly = ref(false)
 
 async function writeData() {
   if (serialStatus.value.isOpen === true) {
@@ -35,6 +37,53 @@ async function writeData() {
     // todo: 当未打开串口时，会提示需要打开串口后使用
   }
 }
+
+function extractNumbers(str: string) {
+  // 匹配形如 $123<<、$45.67<< 的内容
+  const regex = /\$(\d+(\.\d+)?)(?=<<)/g;
+  let match;
+
+  while ((match = regex.exec(str)) !== null) {
+    // match[1] 是括号中的内容（即数字）
+    const x = serial_1.length + 1;
+    serial_1.push({x, y: parseFloat(match[1])});
+  }
+
+  const start = Math.max(0, serial_1.length - VISIBLE_POINTS);
+  const end = start + VISIBLE_POINTS;
+  series.value[0].data = serial_1.slice(start, end);
+  console.log("start: ", start, "end: ", end);
+  console.log(series.value[0].data);
+}
+
+function getListDataSize() {
+  // 估算 listData 的总字节数（只统计 content 字符串，UTF-8 编码）
+  return listData.value.reduce((sum, item) => {
+    return sum + (item.content ? new TextEncoder().encode(item.content).length : 0);
+  }, 0);
+}
+
+function trimListDataTo1MB() {
+  const MAX_SIZE = 1024 * 1024; // 1MB
+  while (getListDataSize() > MAX_SIZE && listData.value.length > 0) {
+    listData.value.shift();
+  }
+}
+
+// 侦听 listData 内容变化
+watch(listData, () => {
+  trimListDataTo1MB();
+}, {deep: true});
+
+/// 监听串口数据
+listen("serial-data", (event) => {
+  listData.value.push({
+    time: new Date().toLocaleString(),
+    content: event.payload as string,
+    isSend: false,
+  });
+  extractNumbers(event.payload as string);
+});
 </script>
 
 <template>
@@ -43,7 +92,7 @@ async function writeData() {
     <div class="col-span-3 xl:col-span-2">
       <div class="h-full w-full flex flex-col gap-2 p-2">
         <div class="border border-base-300 h-full rounded">
-          <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg:boolean) => { displayStatus = msg }"/>
+          <SerialConfig v-model="serialStatus"/>
           <div class="card">
             <div class="card-body">
               <button class="btn btn-sm"
@@ -65,7 +114,7 @@ async function writeData() {
         <div class="row-span-3">
           <div class="flex flex-1 h-full overflow-hidden">
             <!-- 数据区域 -->
-            <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
+            <SerialDataDisplay :series="series" :list-data="listData"/>
             <!-- AT指令配置 -->
             <SerialSendQuickly v-if="isSerialSendQuickly"/>
           </div>

@@ -1,100 +1,23 @@
 <script setup>
-import {nextTick, onMounted, ref, watch, computed} from "vue";
-import SerialConfig from "@/components/SerialConfig.vue";
+import {ref, computed, watch} from "vue";
+import {useRouter} from "vue-router";
+
 import SwitchTheme from "@/components/SwitchTheme.vue";
 import WindowControls from '@/components/WindowControls.vue';
-import {invoke} from "@tauri-apps/api/core";
-import {listen} from "@tauri-apps/api/event";
-import SerialDataDisplay from "@/components/custom/SerialDataDisplay.vue";
-import SerialSendQuickly from "@/components/custom/SerialSendQuickly.vue";
 
 import {Settings, ChartLine} from "lucide-vue-next"
 import {Button} from "@/components/ui/button/index.js";
-import DataChart from "@/pages/DataChart.vue";
+
+const router = useRouter()
 
 const activePage = ref('setting'); // 默认显示设置页
-const settingVariant = computed(() => activePage.value === 'setting' ? 'secondary' : 'ghost')
-const chartLineVariant = computed(() => activePage.value === 'chart-line' ? 'secondary' : 'ghost')
+const settingVariant = computed(() => activePage.value === '/' ? 'secondary' : 'ghost')
+const chartLineVariant = computed(() => activePage.value === '/data-chart' ? 'secondary' : 'ghost')
 
-const listData = ref([]);
-const serialSendData = ref("");
-
-const serialStatus = ref({path: "", isOpen: false,});
-
-const VISIBLE_POINTS = 30;
-
-const displayStatus = ref(true);
-
-const serial_1 = []
-
-const isSerialSendQuickly = ref(false);
-
-const series = ref([{
-  name: 'series-1',
-  data: []
-}]);
-
-function switchPage(page) {
-  activePage.value = page;
-}
-
-async function writeData() {
-  if (serialStatus.value.isOpen === true) {
-    const data = new TextEncoder().encode(serialSendData.value);
-    invoke('write_serial', {data: Array.from(data)}).then(() => {
-      listData.value.push({time: new Date().toLocaleString(), content: serialSendData.value, isSend: true});
-    });
-  } else {
-    // todo: 当未打开串口时，会提示需要打开串口后使用
-  }
-}
-
-function extractNumbers(str) {
-  // 匹配形如 $123<<、$45.67<< 的内容
-  const regex = /\$(\d+(\.\d+)?)(?=<<)/g;
-  let match;
-
-  while ((match = regex.exec(str)) !== null) {
-    // match[1] 是括号中的内容（即数字）
-    const x = serial_1.length + 1;
-    serial_1.push({x, y: parseFloat(match[1])});
-  }
-
-  const start = Math.max(0, serial_1.length - VISIBLE_POINTS);
-  const end = start + VISIBLE_POINTS;
-  series.value[0].data = serial_1.slice(start, end);
-  console.log("start: ", start, "end: ", end);
-  console.log(series.value[0].data);
-}
-
-function getListDataSize() {
-  // 估算 listData 的总字节数（只统计 content 字符串，UTF-8 编码）
-  return listData.value.reduce((sum, item) => {
-    return sum + (item.content ? new TextEncoder().encode(item.content).length : 0);
-  }, 0);
-}
-
-function trimListDataTo1MB() {
-  const MAX_SIZE = 1024 * 1024; // 1MB
-  while (getListDataSize() > MAX_SIZE && listData.value.length > 0) {
-    listData.value.shift();
-  }
-}
-
-// 侦听 listData 内容变化
-watch(listData, () => {
-  trimListDataTo1MB();
-}, {deep: true});
-
-/// 监听串口数据
-listen("serial-data", (event) => {
-  listData.value.push({
-    time: new Date().toLocaleString(),
-    content: event.payload,
-    isSend: false,
-  });
-  extractNumbers(event.payload);
-});
+watch(() => router.currentRoute.value, (newValue) => {
+      activePage.value = newValue.fullPath
+    }
+);
 </script>
 <template>
   <div class="flex flex-col h-screen">
@@ -110,72 +33,25 @@ listen("serial-data", (event) => {
 
     <!-- 页面内容 -->
     <div class="flex flex-1 z-20">
-      <div class="flex-1">
+      <div class="flex">
         <div class="flex flex-col w-14 items-center gap-2 py-2 border-r-2 border-base-300 h-full">
-          <Button :variant="settingVariant" @click="switchPage('setting')">
-            <component :is="Settings"/>
-          </Button>
+          <RouterLink to="/">
+            <Button :variant="settingVariant">
+              <component :is="Settings"/>
+            </Button>
+          </RouterLink>
 
-          <Button :variant="chartLineVariant" @click="switchPage('chart-line')">
-            <component :is="ChartLine"/>
-          </Button>
+          <RouterLink to="/data-chart">
+            <Button :variant="chartLineVariant">
+              <component :is="ChartLine"/>
+            </Button>
+          </RouterLink>
         </div>
       </div>
 
-      <div v-if="activePage === 'setting'" class="grid grid-cols-12 p-0 w-full">
-        <!-- 左侧串口配置栏 -->
-        <div class="col-span-3 xl:col-span-2">
-          <div class="h-full w-full flex flex-col gap-2 p-2">
-            <div class="border border-base-300 h-full rounded">
-              <SerialConfig v-model="serialStatus" @updateDisplayStatus="(msg) => { displayStatus = msg }"/>
-              <div class="card">
-                <div class="card-body">
-                  <button class="btn btn-sm"
-                          @click="() => { listData.length = 0; }">
-                    清空数据
-                  </button>
-                  <button class="btn btn-sm" @click="() => {isSerialSendQuickly = !isSerialSendQuickly}">
-                    快捷发送
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧主区域 -->
-        <div class="col-span-9 xl:col-span-10 p-2">
-          <div class="grid grid-rows-[3fr_1fr] h-full">
-            <div class="row-span-3">
-              <div class="flex flex-1 h-full overflow-hidden">
-                <!-- 数据区域 -->
-                <SerialDataDisplay :display-status="displayStatus" :series="series" :list-data="listData"/>
-                <!-- AT指令配置 -->
-                <SerialSendQuickly v-if="isSerialSendQuickly"/>
-              </div>
-            </div>
-
-            <!-- 发送区域 -->
-            <div class="row-span-1">
-              <div class="rounded mt-2 p-4 border border-base-300">
-                <div class="flex gap-2">
-            <textarea
-                class="textarea flex-1/2 p-2 rounded border text-sm resize-none"
-                rows="2"
-                placeholder="发送至设备...."
-                v-model="serialSendData"
-            ></textarea>
-                  <button class="btn h-auto" @click="writeData">发送</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="w-full" v-if="activePage === 'chart-line'">
-        <DataChart />
-      </div>
+      <main class="flex flex-1">
+        <RouterView/>
+      </main>
     </div>
   </div>
 </template>
